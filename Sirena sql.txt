@@ -1,0 +1,37 @@
+1.1
+
+SELECT o.account,
+      SUM(rm.amount_incl_tax),
+      SUM(ru.amount_incl_tax),
+      SUM(select oamount_incl_tax
+          FROM orders WHERE payment_status = 'successfull')
+FROM orders o, revenue_mrr rm, revenue_usage ru
+WHERE o.account = rm.account_id
+AND o.account = ru.account_id
+GROUP BY o.account
+ORDER BY o.account asc
+
+
+1.2
+
+SELECT TO_CHAR(rm.created_at :: DATE, 'yyyy-mm-dd') AS "month",
+            a.plan AS "plan",
+            'mrr' AS "revenue_type",
+            SUM(rm.amount_incl_tax) AS "amount"
+FROM revenue_mrr rm INNER JOIN accounts a ON rm.account_id = a.id
+UNION
+SELECT TO_CHAR(ru.created_at :: DATE, 'yyyy-mm-dd') AS "month",
+            a.plan AS "plan",
+            'usage' AS "revenue_type",
+            SUM(ru.amount_incl_tax) AS "amount"
+FROM revenue_usage ru INNER JOIN accounts a ON ru.account_id = a.id
+
+
+1.3
+
+SELECT TO_CHAR(MAX(created_at) :: DATE, 'yyyy-mm-dd') AS "month",
+       account_id AS "account",
+       amount_incl_tax AS "amount"
+FROM revenue_mrr
+GROUP BY account_id , amount_incl_tax
+
